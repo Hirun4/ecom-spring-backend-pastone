@@ -16,14 +16,15 @@ public class OrderItem {
 
     @Id
     @GeneratedValue
-    private UUID id;
+    private UUID item_id;
+
+    @Column(nullable = false)
+    private int final_price;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id", nullable = false)
     @JsonIgnore
     private Product product;
-
-    private UUID productVariantId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
@@ -34,5 +35,6 @@ public class OrderItem {
     @Column(nullable = false)
     private Integer quantity;
 
-    private Double itemPrice;
+    @Column(nullable = false)
+    private String size; // Ensure size is included
 }

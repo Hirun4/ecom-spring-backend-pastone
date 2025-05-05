@@ -1,5 +1,6 @@
 package com.thecodereveal.shopease.dto;
 
+import com.thecodereveal.shopease.entities.Address;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,12 +15,12 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class OrderRequest {
-    private UUID userId;
-    private Date orderDate;
-    private UUID addressId;
+    private UUID order_id;
+    private Date created_at;
+//    private Address street;
     private List<OrderItemRequest> orderItemRequests;
-    private Double totalAmount;
-    private Double discount;
-    private String paymentMethod;
-    private Date expectedDeliveryDate;
+
+
+    private String status;
+
 }

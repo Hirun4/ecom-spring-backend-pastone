@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name="orders")
+@Table(name = "orders")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,47 +19,30 @@ public class Order {
 
     @Id
     @GeneratedValue
-    private UUID id;
+    private UUID order_id;
 
     @Temporal(TemporalType.TIMESTAMP)
-    private Date orderDate;
+    private Date created_at;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id",nullable = false)
+    @Column(name = "final_price", nullable = false)
+    private int final_price;
+
+    @Column(name = "status", nullable = false)
+    private String status;
+
+    // Relationship with Address using phone_number
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "phone_number", referencedColumnName = "phoneNumber", nullable = false)
+//    private Address street;
+
+    // Relationship with User using phone_number (but not insertable/updatable)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "phone_number",referencedColumnName = "phone_number", insertable = false, updatable = false)
     @JsonIgnore
     private User user;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "address_id",nullable = false)
-    @ToString.Exclude
-    @JsonIgnore
-    private Address address;
 
-    @Column(nullable = false)
-    private Double totalAmount;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private OrderStatus orderStatus;
-
-    @Column(nullable = false)
-    private String paymentMethod;
-
-    @Column(nullable = true)
-    private String shipmentTrackingNumber;
-
-    @Column(nullable = true)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date expectedDeliveryDate;
-
-    @OneToMany(fetch = FetchType.LAZY,mappedBy = "order",cascade = CascadeType.ALL)
-    @ToString.Exclude
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderItem> orderItemList;
-
-    private Double discount;
-
-    @OneToOne(fetch = FetchType.LAZY,mappedBy = "order",cascade = CascadeType.ALL)
-    @ToString.Exclude
-    private Payment payment;
-
 }

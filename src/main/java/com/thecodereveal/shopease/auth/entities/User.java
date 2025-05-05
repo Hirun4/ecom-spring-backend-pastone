@@ -38,6 +38,7 @@ public class User implements UserDetails {
     @Column(nullable = false,unique = true)
     private String email;
 
+    @Column(name = "phone_number",nullable = false, unique = true)
     private String phoneNumber;
 
     private String provider;
