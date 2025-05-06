@@ -37,7 +37,7 @@ public class Order {
 
     // Relationship with User using phone_number (but not insertable/updatable)
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "phone_number",referencedColumnName = "phone_number", insertable = false, updatable = false)
+    @JoinColumn(name = "phone_number",referencedColumnName = "phone_number", nullable = false)
     @JsonIgnore
     private User user;
 

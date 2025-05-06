@@ -76,6 +76,7 @@ public class OrderService {
         List<Order> orders = orderRepository.findByUserPhoneNumber(phoneNumber);
 
         logger.info("Orders fetched: " + orders);
+        logger.info("Found {} orders for user", orders.size());
 
         return orders.stream().map(order -> OrderDetails.builder()
                 .order_id(order.getOrder_id())
