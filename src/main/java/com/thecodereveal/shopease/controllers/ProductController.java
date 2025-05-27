@@ -27,37 +27,43 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductDto>> getAllProducts(@RequestParam(required = false,name = "categoryId",value = "categoryId") UUID categoryId, @RequestParam(required = false,name = "typeId",value = "typeId") UUID typeId, @RequestParam(required = false) String slug, HttpServletResponse response){
-        List<ProductDto> productList = new ArrayList<>();
-        if(StringUtils.isNotBlank(slug)){
-            ProductDto productDto = productService.getProductBySlug(slug);
-            productList.add(productDto);
+    public ResponseEntity<List<ProductDto>> getAllProducts(){
+        List<ProductDto> productList = productService.getAllProducts();
+        if (productList.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
-        else {
-            productList = productService.getAllProducts(categoryId, typeId);
-        }
-        response.setHeader("Content-Range",String.valueOf(productList.size()));
+        
         return new ResponseEntity<>(productList, HttpStatus.OK);
     }
 
+
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDto> getProductById(@PathVariable UUID id){
+    public ResponseEntity<ProductDto> getProductById(@PathVariable Integer id) throws Exception{
         ProductDto productDto = productService.getProductById(id);
         return new ResponseEntity<>(productDto, HttpStatus.OK);
     }
 
-    //   create Product
-    @PostMapping
-    public ResponseEntity<Product> createProduct(@RequestBody ProductDto productDto){
-        Product product = productService.addProduct(productDto);
-        return new ResponseEntity<>(product,HttpStatus.CREATED);
+    @GetMapping("/category/{category}")
+    public ResponseEntity<List<ProductDto>> getProductByCatogory(@PathVariable String category) throws Exception{
+        List<ProductDto> productList = productService.getProductByCategory(category);
+        if (productList.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(productList, HttpStatus.OK);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Product> updateProduct(@RequestBody ProductDto productDto,@PathVariable UUID id){
-        Product product = productService.updateProduct(productDto,id);
-        return new ResponseEntity<>(product,HttpStatus.OK);
-    }
+    // //   create Product
+    // @PostMapping
+    // public ResponseEntity<Product> createProduct(@RequestBody ProductDto productDto){
+    //     Product product = productService.addProduct(productDto);
+    //     return new ResponseEntity<>(product,HttpStatus.CREATED);
+    // }
+
+    // @PutMapping("/{id}")
+    // public ResponseEntity<Product> updateProduct(@RequestBody ProductDto productDto,@PathVariable UUID id){
+    //     Product product = productService.updateProduct(productDto,id);
+    //     return new ResponseEntity<>(product,HttpStatus.OK);
+    // }
 
 
 }

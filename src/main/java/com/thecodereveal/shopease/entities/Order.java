@@ -1,16 +1,14 @@
 package com.thecodereveal.shopease.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.thecodereveal.shopease.auth.entities.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.Date;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
-@Table(name="orders")
+@Table(name = "orders")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -18,48 +16,57 @@ import java.util.UUID;
 public class Order {
 
     @Id
-    @GeneratedValue
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "order_id")
+    private Integer order_id;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date orderDate;
+    @Column(name = "tracking_number", length = 255)
+    private String tracking_number;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id",nullable = false)
-    @JsonIgnore
-    private User user;
+    // @ManyToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // @Column(name = "customer_id")
+    // private int customer_id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "address_id",nullable = false)
-    @ToString.Exclude
-    @JsonIgnore
-    private Address address;
+    @Column(name = "customer_name", length = 255)
+    private String customer_name;
 
-    @Column(nullable = false)
-    private Double totalAmount;
+    @Column(name = "address", columnDefinition = "TEXT")
+    private String address;
+
+    @Column(name = "phone_number", length = 20)
+    private String phone_number;
+
+    @Column(name = "phone_number1", length = 20)
+    private String phone_number1;
+
+    @Column(name = "phone_number2", length = 20)
+    private String phone_number2;
+
+    @Column(name = "district", length = 100)
+    private String district;
+
+    @Enumerated(EnumType.STRING)     
+    @Column(name = "delivery_method", length = 10)
+    private DeliveryMethod delivery_method;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private OrderStatus orderStatus;
+    @Column(name = "status", length = 10)
+    private OrderStatus status;
 
-    @Column(nullable = false)
-    private String paymentMethod;
+    @Column(name = "return_reason", columnDefinition = "TEXT")
+    private String return_reason;
 
-    @Column(nullable = true)
-    private String shipmentTrackingNumber;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal delivery_fee;
 
-    @Column(nullable = true)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date expectedDeliveryDate;
+    @Column(name = "created_at", insertable = false, updatable = false, columnDefinition = "DATETIME")
+    private java.util.Date created_at;
 
-    @OneToMany(fetch = FetchType.LAZY,mappedBy = "order",cascade = CascadeType.ALL)
-    @ToString.Exclude
-    private List<OrderItem> orderItemList;
 
-    private Double discount;
+    @Column(name = "updated_at", insertable = false, columnDefinition = "DATETIME")
+    private java.util.Date updated_at;
 
-    @OneToOne(fetch = FetchType.LAZY,mappedBy = "order",cascade = CascadeType.ALL)
-    @ToString.Exclude
-    private Payment payment;
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<OrderItem> orderItems;
 
 }

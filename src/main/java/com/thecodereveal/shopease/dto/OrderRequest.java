@@ -5,21 +5,27 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class OrderRequest {
-    private UUID userId;
-    private Date orderDate;
-    private UUID addressId;
-    private List<OrderItemRequest> orderItemRequests;
-    private Double totalAmount;
-    private Double discount;
-    private String paymentMethod;
-    private Date expectedDeliveryDate;
+    private int order_id;
+    private String tracking_number;
+    private String customer_name;
+    private String address;
+    private String phone_number;
+    private String phone_number1;
+    private String phone_number2;
+    private String district;
+    private String delivery_method;
+    private String status;
+    private String return_reason;
+    private BigDecimal delivery_fee;
+    private java.util.Date created_at;
+    private java.util.Date updated_at;
+    private List<OrderItemRequest> orderItems;
 }

@@ -5,6 +5,8 @@ import com.thecodereveal.shopease.auth.dto.OrderResponse;
 import com.thecodereveal.shopease.dto.OrderDetails;
 import com.thecodereveal.shopease.dto.OrderItemDetail;
 import com.thecodereveal.shopease.dto.OrderRequest;
+import com.thecodereveal.shopease.dto.ProductDto;
+import com.thecodereveal.shopease.dto.ProductOrderCountDto;
 import com.thecodereveal.shopease.entities.Order;
 import com.thecodereveal.shopease.services.OrderService;
 import com.thecodereveal.shopease.services.PaymentIntentService;
@@ -19,10 +21,11 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/order")
+@RequestMapping("/api/order1")
 @CrossOrigin
 public class OrderController {
 
@@ -30,32 +33,62 @@ public class OrderController {
     @Autowired
     OrderService orderService;
 
+    // @PostMapping
+    // public ResponseEntity<?> createOrder(@RequestBody OrderRequest orderRequest, Principal principal) throws Exception {
+    //     OrderResponse orderResponse = orderService.createOrder(orderRequest,principal);
+    //         //return new ResponseEntity<>(order, HttpStatus.CREATED);
 
+    //     return new ResponseEntity<>(orderResponse,HttpStatus.OK);
+    // }
 
-    @PostMapping
-    public ResponseEntity<?> createOrder(@RequestBody OrderRequest orderRequest, Principal principal) throws Exception {
-        OrderResponse orderResponse = orderService.createOrder(orderRequest,principal);
-            //return new ResponseEntity<>(order, HttpStatus.CREATED);
+    // @PostMapping("/update-payment")
+    // public ResponseEntity<?> updatePaymentStatus(@RequestBody Map<String,String> request){
+    //     Map<String,String> response = orderService.updateStatus(request.get("paymentIntent"),request.get("status"));
+    //     return new ResponseEntity<>(response,HttpStatus.OK);
+    // }
 
-        return new ResponseEntity<>(orderResponse,HttpStatus.OK);
+    // @PostMapping("/cancel/{id}")
+    // public ResponseEntity<?> cancelOrder(@PathVariable UUID id,Principal principal){
+    //     orderService.cancelOrder(id,principal);
+    //     return new ResponseEntity<>(HttpStatus.OK);
+    // }
+
+    @GetMapping
+    public ResponseEntity<List<OrderRequest>> getAllOrder() {
+        List<OrderRequest> orderList = orderService.getAllOrders();
+        if (orderList.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(orderList, HttpStatus.OK);
     }
 
-    @PostMapping("/update-payment")
-    public ResponseEntity<?> updatePaymentStatus(@RequestBody Map<String,String> request){
-        Map<String,String> response = orderService.updateStatus(request.get("paymentIntent"),request.get("status"));
-        return new ResponseEntity<>(response,HttpStatus.OK);
+    @GetMapping("/orders/by-phone")
+    public ResponseEntity<List<OrderRequest>> getOrdersByPhone() {
+        return ResponseEntity.ok(orderService.getOrdersByPhoneNumber());
     }
 
-    @PostMapping("/cancel/{id}")
-    public ResponseEntity<?> cancelOrder(@PathVariable UUID id,Principal principal){
-        orderService.cancelOrder(id,principal);
-        return new ResponseEntity<>(HttpStatus.OK);
+    @GetMapping("/products")
+    public ResponseEntity<List<ProductDto>> getAllProducts() {
+        List<ProductDto> productList= orderService.getMostOrderedProducts();
+        if (productList.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(productList, HttpStatus.OK);
     }
 
-    @GetMapping("/user")
-    public ResponseEntity<List<OrderDetails>> getOrderByUser(Principal principal) {
-        List<OrderDetails> orders = orderService.getOrdersByUser(principal.getName());
-        return new ResponseEntity<>(orders, HttpStatus.OK);
+    @GetMapping("/products/count/{id}")
+    public ResponseEntity<ProductOrderCountDto> getMostOrderedProductsCount(@PathVariable Integer id) {
+        List<ProductOrderCountDto> productList= orderService.getMostOrderedProductsCount();
+
+        
+        if (productList.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+
+        Optional<ProductOrderCountDto> result = productList.stream()
+        .filter(p -> p.getProductId().equals(id))
+        .findFirst();
+        return new ResponseEntity<>(result.orElse(null), HttpStatus.OK);
     }
 
 }

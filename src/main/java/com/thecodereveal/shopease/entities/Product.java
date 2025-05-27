@@ -1,16 +1,13 @@
 package com.thecodereveal.shopease.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Table(name = "products")
@@ -21,62 +18,47 @@ import java.util.UUID;
 public class Product {
 
     @Id
-    @GeneratedValue
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int product_id;
 
     @Column(nullable = false)
     private String name;
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
-    @Column(nullable = false)
-    private String brand;
+    @Column
+    private String image_url;
+    
+    @Column
+    private String category;
+    
+    @Column
+    private String origin_country;
+    
+    @Column
+    private int stock_quantity;
 
     @Column
-    private Float rating;
+    private String stock_status;
 
-    @Column(nullable = false)
-    private boolean isNewArrival;
+    @Column
+    private String buying_price_code;
 
-    @Column(nullable = false,unique = true)
-    private String slug;
+    @Column(nullable = false, updatable = false,columnDefinition = "DATETIME")
+    private java.util.Date created_at;
+    
+    @Column(nullable = false, columnDefinition = "DATETIME")
+    private java.util.Date updated_at;
 
-    @Column(nullable = false, updatable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private java.util.Date createdAt;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Product_stock> stocks;
 
-    @Column(nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private java.util.Date updatedAt;
 
-    @OneToMany(mappedBy = "product",cascade = CascadeType.ALL)
-    private List<ProductVariant> productVariants;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id",nullable = false)
-    @JsonIgnore
-    private Category category;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "categoryType_id",nullable = false)
-    @JsonIgnore
-    private CategoryType categoryType;
-
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-    private List<Resources> resources;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = new java.util.Date();
-        updatedAt = createdAt;
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = new java.util.Date();
-    }
+    
+    
 }
