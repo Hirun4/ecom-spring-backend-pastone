@@ -160,8 +160,6 @@ public class ProductMapper {
                 .customer_name(order.getCustomer_name())
                 .address(order.getAddress())
                 .phone_number(order.getPhone_number())
-                .phone_number1(order.getPhone_number1())
-                .phone_number2(order.getPhone_number2())
                 .district(order.getDistrict())
                 .delivery_method(order.getDelivery_method().name())
                 .status(order.getStatus().name())

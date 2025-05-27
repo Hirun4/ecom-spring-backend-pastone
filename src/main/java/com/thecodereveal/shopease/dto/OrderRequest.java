@@ -18,8 +18,6 @@ public class OrderRequest {
     private String customer_name;
     private String address;
     private String phone_number;
-    private String phone_number1;
-    private String phone_number2;
     private String district;
     private String delivery_method;
     private String status;

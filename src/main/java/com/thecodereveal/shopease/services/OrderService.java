@@ -61,8 +61,8 @@ public class OrderService {
         return products;
     }
 
-    public List<OrderRequest> getOrdersByPhoneNumber() {
-        List<Order> orders = orderRepository.findOrdersByPhoneNumber();
+    public List<OrderRequest> getOrdersByPhoneNumber(String phoneNumber) {
+        List<Order> orders = orderRepository.findOrdersByPhoneNumber(phoneNumber);
         return productMapper.mapOrderDto(orders);
     }
 

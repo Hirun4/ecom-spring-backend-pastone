@@ -62,9 +62,9 @@ public class OrderController {
         return new ResponseEntity<>(orderList, HttpStatus.OK);
     }
 
-    @GetMapping("/orders/by-phone")
-    public ResponseEntity<List<OrderRequest>> getOrdersByPhone() {
-        return ResponseEntity.ok(orderService.getOrdersByPhoneNumber());
+    @GetMapping("/orders/by-phone/{phone}")
+    public ResponseEntity<List<OrderRequest>> getOrdersByPhone(@PathVariable String phone) {
+        return ResponseEntity.ok(orderService.getOrdersByPhoneNumber(phone));
     }
 
     @GetMapping("/products")

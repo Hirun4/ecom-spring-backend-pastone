@@ -12,6 +12,6 @@ import java.util.List;
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Integer> {
 
-    @Query("SELECT o FROM Order o WHERE o.phone_number = '0712237230'")
-    List<Order> findOrdersByPhoneNumber();
+    @Query("SELECT o FROM Order o WHERE o.phone_number = :phoneNumber ")
+    List<Order> findOrdersByPhoneNumber(@Param("phoneNumber") String phoneNumber);
 }
