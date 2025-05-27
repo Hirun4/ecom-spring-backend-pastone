@@ -58,7 +58,10 @@ public class AuthController {
                 }
 
                 String token = jwtTokenHelper.generateToken(user.getEmail());
-                UserToken userToken = UserToken.builder().token(token).build();
+                UserToken userToken = UserToken.builder()
+                        .token(token)
+                        .user(user)
+                        .build();
                 return new ResponseEntity<>(userToken, HttpStatus.OK);
             }
         } catch (BadCredentialsException e) {
