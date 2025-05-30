@@ -78,9 +78,11 @@ public class CartController {
         return ResponseEntity.ok(cartService.getCart(userIdentifier));
     }
 
-    @DeleteMapping("/clear/{userIdentifier}")
-    public ResponseEntity<Void> clearCart(@PathVariable String userIdentifier) {
-        cartService.clearCart(userIdentifier);
+    @DeleteMapping("/{userIdentifier}/items/{cartItemId}")
+    public ResponseEntity<Void> removeCartItem(
+            @PathVariable String userIdentifier,
+            @PathVariable Integer cartItemId) {
+        cartService.removeCartItem(userIdentifier, cartItemId);
         return ResponseEntity.ok().build();
     }
 }

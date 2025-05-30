@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CartItemRepository extends JpaRepository<CartItem, Integer> {
-    List<CartItemResponse> findByUserIdentifier(String userIdentifier);
+    List<CartItem> findByUserIdentifier(String userIdentifier);
 
     @Query("SELECT c FROM CartItem c WHERE c.userIdentifier = :userIdentifier AND c.product.product_id = :productId AND c.size = :size")
     Optional<CartItem> findByUserIdentifierAndProductIdAndSize(
@@ -20,5 +20,5 @@ public interface CartItemRepository extends JpaRepository<CartItem, Integer> {
         @Param("size") String size
     );
 
-    void deleteByUserIdentifier(String userIdentifier);
+    void deleteById(Integer id);
 }

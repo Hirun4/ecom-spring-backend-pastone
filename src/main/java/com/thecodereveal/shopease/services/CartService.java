@@ -4,6 +4,7 @@ import com.thecodereveal.shopease.dto.CartItemRequest;
 import com.thecodereveal.shopease.dto.CartItemResponse;
 import com.thecodereveal.shopease.entities.CartItem;
 import com.thecodereveal.shopease.entities.Product;
+import com.thecodereveal.shopease.mapper.CartItemMapper;
 import com.thecodereveal.shopease.repositories.CartItemRepository;
 import com.thecodereveal.shopease.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,8 @@ import java.util.List;
 
 @Service
 public class CartService {
+    @Autowired
+    private CartItemMapper cartItemMapper;
 
     @Autowired
     private CartItemRepository cartItemRepository;
@@ -42,10 +45,19 @@ public class CartService {
     }
 
     public List<CartItemResponse> getCart(String userIdentifier) {
-        return cartItemRepository.findByUserIdentifier(userIdentifier);
+        List<CartItem> cartItems = cartItemRepository.findByUserIdentifier(userIdentifier);
+        return cartItemMapper.toDtoList(cartItems);
     }
 
-    public void clearCart(String userIdentifier) {
-        cartItemRepository.deleteByUserIdentifier(userIdentifier);
+    public void removeCartItem(String userIdentifier, Integer cartItemId) {
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("Cart item not found"));
+
+        // Verify the cart item belongs to the user
+        if (!cartItem.getUserIdentifier().equals(userIdentifier)) {
+            throw new RuntimeException("Unauthorized access to cart item");
+        }
+
+        cartItemRepository.deleteById(cartItemId);
     }
 }
