@@ -1,5 +1,7 @@
 package com.thecodereveal.shopease.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -29,7 +31,9 @@ public class Product_stock {
     //  private int product_id;
     
     @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false)  // Maps to product_id in the DB
+    @JoinColumn(name = "product_id", nullable = false) 
+     // Maps to product_id in the DB
+     @JsonIgnore
     private Product product;
 
     private String size;

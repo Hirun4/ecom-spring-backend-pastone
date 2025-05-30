@@ -32,13 +32,13 @@ public class Product {
 
     @Column
     private String image_url;
-    
+
     @Column
     private String category;
-    
+
     @Column
     private String origin_country;
-    
+
     @Column
     private int stock_quantity;
 
@@ -48,17 +48,13 @@ public class Product {
     @Column
     private String buying_price_code;
 
-    @Column(nullable = false, updatable = false,columnDefinition = "DATETIME")
+    @Column(nullable = false, updatable = false, columnDefinition = "DATETIME")
     private java.util.Date created_at;
-    
+
     @Column(nullable = false, columnDefinition = "DATETIME")
     private java.util.Date updated_at;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Product_stock> stocks;
 
-
-
-    
-    
 }

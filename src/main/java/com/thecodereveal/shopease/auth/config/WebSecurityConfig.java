@@ -36,8 +36,9 @@ public class WebSecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorize)-> authorize
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
-                .requestMatchers(HttpMethod.GET,"/api/products/**","/api/order1/**","/api/category/**").permitAll()
+                .requestMatchers(HttpMethod.GET,"/api/products/**","/api/order1/**","/api/category/**","/api/cart/**").permitAll()
                         .requestMatchers("/oauth2/success").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/api/cart/**").permitAll()
                 .anyRequest().authenticated())
                 .oauth2Login((oauth2login)-> oauth2login.defaultSuccessUrl("/oauth2/success").loginPage("/oauth2/authorization/google"))
                 //.exceptionHandling((exception)-> exception.authenticationEntryPoint(new RESTAuthenticationEntryPoint()))
