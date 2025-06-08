@@ -40,7 +40,7 @@ public class Order {
     private String district;
 
     @Enumerated(EnumType.STRING)     
-    @Column(name = "delivery_method", length = 10)
+    @Column(name = "delivery_method", length = 10 ,nullable = true)
     private DeliveryMethod delivery_method;
 
     @Enumerated(EnumType.STRING)

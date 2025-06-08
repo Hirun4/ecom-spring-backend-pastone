@@ -1,17 +1,10 @@
 package com.thecodereveal.shopease.controllers;
 
-import com.stripe.model.PaymentIntent;
 import com.thecodereveal.shopease.auth.dto.OrderResponse;
-import com.thecodereveal.shopease.dto.OrderDetails;
-import com.thecodereveal.shopease.dto.OrderItemDetail;
 import com.thecodereveal.shopease.dto.OrderRequest;
 import com.thecodereveal.shopease.dto.ProductDto;
 import com.thecodereveal.shopease.dto.ProductOrderCountDto;
-import com.thecodereveal.shopease.entities.Order;
 import com.thecodereveal.shopease.services.OrderService;
-import com.thecodereveal.shopease.services.PaymentIntentService;
-import org.apache.coyote.BadRequestException;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/order1")
@@ -33,13 +23,48 @@ public class OrderController {
     @Autowired
     OrderService orderService;
 
-    // @PostMapping
-    // public ResponseEntity<?> createOrder(@RequestBody OrderRequest orderRequest, Principal principal) throws Exception {
-    //     OrderResponse orderResponse = orderService.createOrder(orderRequest,principal);
-    //         //return new ResponseEntity<>(order, HttpStatus.CREATED);
+//     @PostMapping
+//     public ResponseEntity<?> createOrder(@RequestBody OrderRequest orderRequest, Principal principal) throws Exception {
+//         OrderResponse orderResponse = orderService.createOrder(orderRequest,principal);
+//             //return new ResponseEntity<>(order, HttpStatus.CREATED);
+//
+//         return new ResponseEntity<>(orderResponse,HttpStatus.OK);
+//     }
 
-    //     return new ResponseEntity<>(orderResponse,HttpStatus.OK);
-    // }
+    @PutMapping("/cancel/{orderId}")
+    public ResponseEntity<?> cancelOrder(@PathVariable Integer orderId) {
+        try {
+            orderService.cancelOrder(orderId);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    // OrderController.java
+    @PutMapping("/clear-promo/{phone}")
+    public ResponseEntity<?> clearPromoPrices(@PathVariable String phone) {
+        try {
+            orderService.clearPromoPricesByPhone(phone);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping
+    public ResponseEntity<?> placeOrder(
+            @RequestBody OrderRequest orderRequest,
+            @RequestParam String paymentMethod,
+            @RequestParam(required = false) String paymentSlipUrl) {
+        try {
+            orderService.placeOrder(orderRequest, paymentMethod, paymentSlipUrl);
+            return new ResponseEntity<>(HttpStatus.CREATED);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
 
     // @PostMapping("/update-payment")
     // public ResponseEntity<?> updatePaymentStatus(@RequestBody Map<String,String> request){

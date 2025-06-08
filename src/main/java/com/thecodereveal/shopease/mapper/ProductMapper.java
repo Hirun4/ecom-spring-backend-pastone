@@ -10,9 +10,7 @@ import com.thecodereveal.shopease.services.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.security.Timestamp;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -37,31 +35,10 @@ public class ProductMapper {
         product.setBuying_price_code(productDto.getBuying_price_code());
         product.setCreated_at(productDto.getCreated_at());
         product.setUpdated_at(productDto.getUpdated_at());
-
-        // Category category = categoryService.getCategory(productDto.getCategoryId());
-        // if(null != category){
-        //     product.setCategory(category);
-        //     UUID categoryTypeId = productDto.getCategoryTypeId();
-
-        //     CategoryType categoryType = category.getCategoryTypes().stream().filter(categoryType1 -> categoryType1.getId().equals(categoryTypeId)).findFirst().orElse(null);
-        //     product.setCategoryType(categoryType);
-        // }
-
-        // if(null != productDto.getVariants()){
-        //     product.setProductVariants(mapToProductVariant(productDto.getVariants(),product));
-        // }
-
-        // if(null != productDto.getProductResources()){
-        //     product.setResources(mapToProductResources(productDto.getProductResources(),product));
-        // }
-
-
-
         return product;
     }
 
     private List<Resources> mapToProductResources(List<ProductResourceDto> productResources, Product product) {
-
         return productResources.stream().map(productResourceDto -> {
             Resources resources= new Resources();
             if(null != productResourceDto.getId()){
@@ -95,7 +72,6 @@ public class ProductMapper {
     }
 
     public ProductDto mapProductToDto(Product product) {
-
         return ProductDto.builder()
                 .product_id(product.getProduct_id())
                 .name(product.getName())
@@ -117,7 +93,7 @@ public class ProductMapper {
     }
 
     public List<ProductVariantDto> mapProductVariantListToDto(List<ProductVariant> productVariants) {
-       return productVariants.stream().map(this::mapProductVariantDto).toList();
+        return productVariants.stream().map(this::mapProductVariantDto).toList();
     }
 
     private ProductVariantDto mapProductVariantDto(ProductVariant productVariant) {
@@ -143,14 +119,12 @@ public class ProductMapper {
                 .build();
     }
 
-
     // *************************Order Mapping************************
 
-     public List<OrderRequest> mapOrderDto(List<Order> orders) {
-
+    public List<OrderRequest> mapOrderDto(List<Order> orders) {
         return orders.stream()
-                     .map(this::mapOrderToDto)
-                     .toList(); 
+                .map(this::mapOrderToDto)
+                .toList();
     }
 
     private OrderRequest mapOrderToDto(Order order) {
@@ -161,11 +135,11 @@ public class ProductMapper {
                 .address(order.getAddress())
                 .phone_number(order.getPhone_number())
                 .district(order.getDistrict())
-                .delivery_method(order.getDelivery_method().name())
-                .status(order.getStatus().name())
+                .delivery_method(order.getDelivery_method() != null ? order.getDelivery_method().name() : null)
+                .status(order.getStatus() != null ? order.getStatus().name() : null)
                 .return_reason(order.getReturn_reason())
                 .delivery_fee(order.getDelivery_fee())
-                .created_at(order.getCreated_at()) 
+                .created_at(order.getCreated_at())
                 .updated_at(order.getUpdated_at())
                 .orderItems(mapItemsToDto(order.getOrderItems()))
                 .build();
@@ -173,7 +147,7 @@ public class ProductMapper {
 
     private List<OrderItemRequest> mapItemsToDto(List<OrderItem> items) {
         return items.stream()
-                    .map(item -> OrderItemRequest.builder()
+                .map(item -> OrderItemRequest.builder()
                         .item_id(item.getItem_id())
                         .order_id(item.getOrder().getOrder_id())
                         .product_id(item.getProduct().getProduct_id())
@@ -184,11 +158,12 @@ public class ProductMapper {
                         .selling_price(item.getSelling_price())
                         .discount(item.getDiscount())
                         .buying_price_code(item.getBuying_price_code())
+                        .promo_price(item.getPromo_price())
+                        .final_price(item.getFinal_price())
+                        .phone_number(item.getPhone_number())
                         .products(getProductDtos(List.of(item.getProduct())))
                         .build()
-                    )
-                    .collect(Collectors.toList());
+                )
+                .collect(Collectors.toList());
     }
-        
-    
 }

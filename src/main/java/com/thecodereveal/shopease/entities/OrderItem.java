@@ -47,6 +47,15 @@ public class OrderItem {
     @Column(name = "buying_price_code", length = 255)
     private String buying_price_code;
 
+    @Column(name = "promo_price",length = 100)
+    private int promo_price;
+
+    @Column(name = "final_price", length = 100)
+    private int final_price;
+
+    @Column(name = "phone_number", length = 20)
+    private String phone_number;
+
     
     
 }

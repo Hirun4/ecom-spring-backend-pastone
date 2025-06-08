@@ -54,11 +54,11 @@ public class ProductServiceImpl implements ProductService {
 
         // Map product stock to DTOs
         List<ProductStockDto> stockDtos = product.getStocks().stream().map(stock -> ProductStockDto.builder()
-                .stock_id(stock.getStock_id())
-                .product_id(product.getProduct_id())
-                .size(stock.getSize())
-                .quantity(stock.getQuantity())
-                .build())
+                        .stock_id(stock.getStock_id())
+                        .product_id(product.getProduct_id())
+                        .size(stock.getSize())
+                        .quantity(stock.getQuantity())
+                        .build())
                 .toList();
 
         productDto.setStocks(stockDtos);
@@ -68,11 +68,17 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductDto> getProductByCategory(String category) throws Exception {
         List<Product> products = productRepository.findByCategory(category);
-        if(products.isEmpty()){
+        if (products.isEmpty()) {
             throw new ResourceNotFoundEx("Product Not Found!");
         }
         return productMapper.getProductDtos(products);
 
+    }
+
+    @Override
+    public Product getProductEntityById(Integer id) throws Exception {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundEx("Product Not Found!"));
     }
 
 

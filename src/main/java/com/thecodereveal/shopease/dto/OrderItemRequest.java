@@ -25,5 +25,8 @@ public class OrderItemRequest {
     private BigDecimal selling_price;
     private BigDecimal discount;
     private String buying_price_code;
+    private int promo_price;
+    private int final_price;
+    private String phone_number;
     private List<ProductDto> products;
 }

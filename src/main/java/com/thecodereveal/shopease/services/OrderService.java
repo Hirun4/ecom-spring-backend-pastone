@@ -1,26 +1,16 @@
 package com.thecodereveal.shopease.services;
 
-import com.stripe.model.PaymentIntent;
-import com.thecodereveal.shopease.auth.dto.OrderResponse;
-import com.thecodereveal.shopease.auth.entities.User;
-import com.thecodereveal.shopease.dto.OrderDetails;
-import com.thecodereveal.shopease.dto.OrderItemDetail;
-import com.thecodereveal.shopease.dto.OrderItemRequest;
 import com.thecodereveal.shopease.dto.OrderRequest;
 import com.thecodereveal.shopease.dto.ProductDto;
 import com.thecodereveal.shopease.dto.ProductOrderCountDto;
 import com.thecodereveal.shopease.entities.*;
 import com.thecodereveal.shopease.mapper.ProductMapper;
-import com.thecodereveal.shopease.repositories.OrderItemRepository;
-import com.thecodereveal.shopease.repositories.OrderRepository;
-import jakarta.transaction.Transactional;
-import org.apache.coyote.BadRequestException;
-import org.aspectj.weaver.ast.Or;
+import com.thecodereveal.shopease.repositories.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Principal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -34,6 +24,14 @@ public class OrderService {
     private OrderRepository orderRepository;
 
     @Autowired
+    private ProductCodesRepository productCodesRepository;
+
+    @Autowired
+    private ProductStockRepository productStockRepository;
+
+
+
+    @Autowired
     private OrderItemRepository orderItemRepository;
 
     @Autowired
@@ -44,10 +42,12 @@ public class OrderService {
 
     @Autowired
     private ProductMapper productMapper;
+    @Autowired
+    private CustomerOrderRequestRepository customerOrderRequestRepository;
 
     public List<OrderRequest> getAllOrders() {
-    List<Order> orders = orderRepository.findAll();
-    return productMapper.mapOrderDto(orders);
+        List<Order> orders = orderRepository.findAll();
+        return productMapper.mapOrderDto(orders);
     }
 
     public List<ProductDto> getMostOrderedProducts() {
@@ -55,10 +55,8 @@ public class OrderService {
         return productMapper.getProductDtos(products);
     }
 
-
     public List<ProductOrderCountDto> getMostOrderedProductsCount() {
-        List<ProductOrderCountDto> products = orderItemRepository.findProductOrderCounts();
-        return products;
+        return orderItemRepository.findProductOrderCounts();
     }
 
     public List<OrderRequest> getOrdersByPhoneNumber(String phoneNumber) {
@@ -66,172 +64,123 @@ public class OrderService {
         return productMapper.mapOrderDto(orders);
     }
 
+    public void placeOrder(OrderRequest orderRequest, String paymentMethod, String paymentSlipUrl) {
+        if ("BANK_TRANSFER".equalsIgnoreCase(paymentMethod)) {
+            CustomerOrderRequest cor = CustomerOrderRequest.builder()
+                    .customerName(orderRequest.getCustomer_name())
+                    .address(orderRequest.getAddress())
+                    .phoneNumber(orderRequest.getPhone_number())
+                    .deliveryMethod("Courier")
+                    .district(orderRequest.getDistrict())
+                    .deliveryFee(orderRequest.getDelivery_fee())
+                    .paymentSlipUrl(paymentSlipUrl)
+                    .createdAt(new Date())
+                    .status("PENDING")
+                    .build();
+            cor = customerOrderRequestRepository.save(cor);
 
-// Helper to map OrderItem → OrderItemRequest
-// private List<OrderItemRequest> getItemDetails(List<OrderItem> items) {
-//     return items.stream()
-//         .map(item -> OrderItemRequest.builder()
-//             .item_id(item.getItem_id())
-//             .order_id(item.getOrder().getOrder_id())
-//             .product_id(item.getProduct_id())
-//             .origin_country(item.getOrigin_country())
-//             .size(item.getSize())
-//             .quantity(item.getQuantity())
-//             .buying_price(item.getBuying_price())
-//             .selling_price(item.getSelling_price())
-//             .discount(item.getDiscount())
-//             .buying_price_code(item.getBuying_price_code())
-//             .build()
-//         )
-//         .collect(Collectors.toList());
-// }
+            final CustomerOrderRequest corFinal = cor;
+            List<CustomerOrderRequestItem> items = orderRequest.getOrderItems().stream().map(item -> {
+                try {
+                    Product product = productService.getProductEntityById(item.getProduct_id());
+                    return CustomerOrderRequestItem.builder()
+                            .customerOrderRequest(corFinal)
+                            .product(product)
+                            .size(item.getSize())
+                            .quantity(item.getQuantity())
+                            .build();
+                } catch (Exception e) {
+                    throw new RuntimeException("Product not found for id: " + item.getProduct_id());
+                }
+            }).collect(Collectors.toList());
 
-    // private List<OrderItemRequest> getItemDetails(List<OrderItem> items) {
-    //     return items.stream().map(item -> OrderItemRequest.builder()
-    //     .item_id(item.getItem_id())
-    //             .order_id(item.getOrder().getOrder_id())
-    //             .product_id(item.getProduct_id())
-    //             .origin_country(item.getOrigin_country())
-    //             .size(item.getSize())
-    //             .quantity(item.getQuantity())
-    //             .buying_price(item.getBuying_price())
-    //             .selling_price(item.getSelling_price())
-    //             .discount(item.getDiscount())
-    //             .buying_price_code(item.getBuying_price_code())
-    //             .build()).toList();
-    // }
+            cor.setItems(items);
+            customerOrderRequestRepository.save(cor);
+        } else if ("CASH_ON_DELIVERY".equalsIgnoreCase(paymentMethod)) {
+            Order order = Order.builder()
+                    .customer_name(orderRequest.getCustomer_name())
+                    .address(orderRequest.getAddress())
+                    .phone_number(orderRequest.getPhone_number())
+                    .district(orderRequest.getDistrict())
+                    .delivery_method(DeliveryMethod.Courier)
+                    .delivery_fee(orderRequest.getDelivery_fee())
+                    .created_at(new Date())
+                    .status(OrderStatus.PENDING)
+                    .build();
+            order = orderRepository.save(order);
 
-    // @Transactional
-    // public OrderResponse createOrder(OrderRequest orderRequest, Principal
-    // principal) throws Exception {
-    // User user = (User)
-    // userDetailsService.loadUserByUsername(principal.getName());
-    // Address address = user.getAddressList().stream().filter(address1 ->
-    // orderRequest.getAddressId().equals(address1.getId())).findFirst().orElseThrow(BadRequestException::new);
+            final Order orderFinal = order;
+            List<OrderItem> orderItems = orderRequest.getOrderItems().stream().map(item -> {
+                try {
+                    Product product = productService.getProductEntityById(item.getProduct_id());
+                    String buyingPriceCode = product.getBuying_price_code();
+                    Product_codes productCode = productCodesRepository.findByCode(buyingPriceCode);
+                    return OrderItem.builder()
+                            .order(orderFinal)
+                            .product(product)
+                            .size(item.getSize())
+                            .quantity(item.getQuantity())
+                            .buying_price_code(buyingPriceCode)
+                            .buying_price(productCode != null ? productCode.getBuyingPrice() : null)
+                            .selling_price(item.getSelling_price())
+                            .promo_price(item.getPromo_price())
+                            .final_price(item.getFinal_price())
+                            .phone_number(item.getPhone_number())
+                            .discount(item.getDiscount())
+                            .origin_country(item.getOrigin_country())
+                            .build();
+                } catch (Exception e) {
+                    throw new RuntimeException("Product not found for id: " + item.getProduct_id());
+                }
+            }).collect(Collectors.toList());
 
-    // Order order= Order.builder()
-    // .user(user)
-    // .address(address)
-    // .totalAmount(orderRequest.getTotalAmount())
-    // .orderDate(orderRequest.getOrderDate())
-    // .discount(orderRequest.getDiscount())
-    // .expectedDeliveryDate(orderRequest.getExpectedDeliveryDate())
-    // .paymentMethod(orderRequest.getPaymentMethod())
-    // .orderStatus(OrderStatus.PENDING)
-    // .build();
-    // List<OrderItem> orderItems =
-    // orderRequest.getOrderItemRequests().stream().map(orderItemRequest -> {
-    // try {
-    // Product product=
-    // productService.fetchProductById(orderItemRequest.getProductId());
-    // OrderItem orderItem= OrderItem.builder()
-    // .product(product)
-    // .productVariantId(orderItemRequest.getProductVariantId())
-    // .quantity(orderItemRequest.getQuantity())
-    // .order(order)
-    // .build();
-    // return orderItem;
-    // } catch (Exception e) {
-    // throw new RuntimeException(e);
-    // }
-    // }).toList();
+            order.setOrderItems(orderItems);
+            orderRepository.save(order);
+        }
+    }
 
-    // order.setOrderItemList(orderItems);
-    // Payment payment=new Payment();
-    // payment.setPaymentStatus(PaymentStatus.PENDING);
-    // payment.setPaymentDate(new Date());
-    // payment.setOrder(order);
-    // payment.setAmount(order.getTotalAmount());
-    // payment.setPaymentMethod(order.getPaymentMethod());
-    // order.setPayment(payment);
-    // Order savedOrder = orderRepository.save(order);
+    public void approveBankTransferOrder(Integer requestId) {
+        CustomerOrderRequest cor = customerOrderRequestRepository.findById(requestId).orElseThrow();
+        // Implement approval logic here
+    }
 
-    // OrderResponse orderResponse = OrderResponse.builder()
-    // .paymentMethod(orderRequest.getPaymentMethod())
-    // .orderId(savedOrder.getId())
-    // .build();
-    // if(Objects.equals(orderRequest.getPaymentMethod(), "CARD")){
-    // orderResponse.setCredentials(paymentIntentService.createPaymentIntent(order));
-    // }
+    @Transactional
+    public void cancelOrder(Integer orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            throw new RuntimeException("Order already cancelled");
+        }
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
 
-    // return orderResponse;
+        for (OrderItem item : order.getOrderItems()) {
+            Product product = item.getProduct();
+            String size = item.getSize();
+            int qty = item.getQuantity();
 
-    // }
+            Product_stock stock = product.getStocks().stream()
+                    .filter(s -> s.getSize().equals(size))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException("Stock not found for product " + product.getProduct_id() + " size " + size));
+            stock.setQuantity(stock.getQuantity() + qty);
+            productStockRepository.save(stock);
+        }
+    }
 
-    // public Map<String,String> updateStatus(String paymentIntentId, String status)
-    // {
-
-    // try{
-    // PaymentIntent paymentIntent= PaymentIntent.retrieve(paymentIntentId);
-    // if (paymentIntent != null && paymentIntent.getStatus().equals("succeeded")) {
-    // String orderId = paymentIntent.getMetadata().get("orderId") ;
-    // Order order=
-    // orderRepository.findById(UUID.fromString(orderId)).orElseThrow(BadRequestException::new);
-    // Payment payment = order.getPayment();
-    // payment.setPaymentStatus(PaymentStatus.COMPLETED);
-    // payment.setPaymentMethod(paymentIntent.getPaymentMethod());
-    // order.setPaymentMethod(paymentIntent.getPaymentMethod());
-    // order.setOrderStatus(OrderStatus.IN_PROGRESS);
-    // order.setPayment(payment);
-    // Order savedOrder = orderRepository.save(order);
-    // Map<String,String> map = new HashMap<>();
-    // map.put("orderId", String.valueOf(savedOrder.getId()));
-    // return map;
-    // }
-    // else{
-    // throw new IllegalArgumentException("PaymentIntent not found or missing
-    // metadata");
-    // }
-    // }
-    // catch (Exception e){
-    // throw new IllegalArgumentException("PaymentIntent not found or missing
-    // metadata");
-    // }
-    // }
-
-    // public List<OrderDetails> getOrdersByUser(String name) {
-    //     User user = (User) userDetailsService.loadUserByUsername(name);
-    //     List<Order> orders = orderRepository.findByUser(user);
-    //     return orders.stream().map(order -> {
-    //         return OrderDetails.builder()
-    //                 .id(order.getId())
-    //                 .orderDate(order.getOrderDate())
-    //                 .orderStatus(order.getOrderStatus())
-    //                 .shipmentNumber(order.getShipmentTrackingNumber())
-    //                 .address(order.getAddress())
-    //                 .totalAmount(order.getTotalAmount())
-    //                 .orderItemList(getItemDetails(order.getOrderItemList()))
-    //                 .expectedDeliveryDate(order.getExpectedDeliveryDate())
-    //                 .build();
-    //     }).toList();
-
-    // }
-
-    // private List<OrderItemDetail> getItemDetails(List<OrderItem> orderItemList) {
-
-    // return orderItemList.stream().map(orderItem -> {
-    // return OrderItemDetail.builder()
-    // .id(orderItem.getId())
-    // .itemPrice(orderItem.getItemPrice())
-    // .product(orderItem.getProduct())
-    // .productVariantId(orderItem.getProductVariantId())
-    // .quantity(orderItem.getQuantity())
-    // .build();
-    // }).toList();
-    // }
-
-    // public void cancelOrder(UUID id, Principal principal) {
-    // User user = (User)
-    // userDetailsService.loadUserByUsername(principal.getName());
-    // Order order = orderRepository.findById(id).get();
-    // if(null != order && order.getUser().getId().equals(user.getId())){
-    // order.setOrderStatus(OrderStatus.CANCELLED);
-    // //logic to refund amount
-    // orderRepository.save(order);
-    // }
-    // else{
-    // new RuntimeException("Invalid request");
-    // }
-
-    // }
+    // OrderService.java
+    @Transactional
+    public void clearPromoPricesByPhone(String phoneNumber) {
+        List<Order> orders = orderRepository.findOrdersByPhoneNumber(phoneNumber);
+        for (Order order : orders) {
+            if (order.getOrderItems() != null) {
+                for (OrderItem item : order.getOrderItems()) {
+                    if (item.getPromo_price() > 0) {
+                        item.setPromo_price(0);
+                        orderItemRepository.save(item);
+                    }
+                }
+            }
+        }
+    }
 }

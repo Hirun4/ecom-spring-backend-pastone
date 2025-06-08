@@ -17,8 +17,10 @@ public interface ProductService {
     ProductDto getProductById(Integer id)throws Exception;
 
     // Product updateProduct(ProductDto productDto, UUID id);
+    Product getProductEntityById(Integer id) throws Exception;
+}
 
     // Product fetchProductById(UUID uuid) throws Exception;
 
 
-}
+

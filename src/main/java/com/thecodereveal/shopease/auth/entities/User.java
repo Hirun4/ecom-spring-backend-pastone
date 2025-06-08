@@ -44,6 +44,8 @@ public class User implements UserDetails {
 
     private String verificationCode;
 
+
+
     private boolean enabled=false;
 
     @ManyToMany(cascade = CascadeType.ALL,fetch = FetchType.EAGER)
@@ -53,6 +55,8 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @ToString.Exclude
     private List<Address> addressList;
+
+
 
 
     @Override
