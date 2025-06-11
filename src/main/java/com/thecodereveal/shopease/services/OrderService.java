@@ -29,8 +29,6 @@ public class OrderService {
     @Autowired
     private ProductStockRepository productStockRepository;
 
-
-
     @Autowired
     private OrderItemRepository orderItemRepository;
 
@@ -44,6 +42,9 @@ public class OrderService {
     private ProductMapper productMapper;
     @Autowired
     private CustomerOrderRequestRepository customerOrderRequestRepository;
+
+    @Autowired
+    private CartItemRepository cartItemRepository;
 
     public List<OrderRequest> getAllOrders() {
         List<Order> orders = orderRepository.findAll();
@@ -107,6 +108,23 @@ public class OrderService {
 
             cor.setItems(items);
             customerOrderRequestRepository.save(cor);
+
+            // Reduce stock for each item
+            for (CustomerOrderRequestItem item : items) {
+                Product product = item.getProduct();
+                Product_stock stock = product.getStocks().stream()
+                        .filter(s -> s.getSize().equals(item.getSize()))
+                        .findFirst()
+                        .orElseThrow(() -> new RuntimeException(
+                                "Stock not found for product " + product.getProduct_id() + " size " + item.getSize()));
+
+                if (stock.getQuantity() < item.getQuantity()) {
+                    throw new RuntimeException(
+                            "Not enough stock for product " + product.getProduct_id() + " size " + item.getSize());
+                }
+                stock.setQuantity(stock.getQuantity() - item.getQuantity());
+                productStockRepository.save(stock);
+            }
         } else if ("CASH_ON_DELIVERY".equalsIgnoreCase(paymentMethod)) {
             Order order = Order.builder()
                     .customer_name(orderRequest.getCustomer_name())
@@ -147,6 +165,57 @@ public class OrderService {
 
             order.setOrderItems(orderItems);
             orderRepository.save(order);
+
+            // Reduce stock for each item
+            for (OrderItem item : orderItems) {
+                Product product = item.getProduct();
+                Product_stock stock = product.getStocks().stream()
+                        .filter(s -> s.getSize().equals(item.getSize()))
+                        .findFirst()
+                        .orElseThrow(() -> new RuntimeException(
+                                "Stock not found for product " + product.getProduct_id() + " size " + item.getSize()));
+
+                if (stock.getQuantity() < item.getQuantity()) {
+                    throw new RuntimeException(
+                            "Not enough stock for product " + product.getProduct_id() + " size " + item.getSize());
+                }
+                stock.setQuantity(stock.getQuantity() - item.getQuantity());
+                productStockRepository.save(stock);
+            }
+        }
+
+        // Remove ordered items from cart
+        List<CartItem> cartItems = cartItemRepository.findByUserIdentifier(orderRequest.getPhone_number());
+        for (var orderedItem : orderRequest.getOrderItems()) {
+            cartItems.stream()
+                    .filter(cartItem -> cartItem.getProduct().getProduct_id() == orderedItem.getProduct_id()
+                            && cartItem.getSize().equals(orderedItem.getSize()))
+                    .findFirst()
+                    .ifPresent(cartItem -> cartItemRepository.deleteById(cartItem.getId()));
+        }
+
+        // Remove all items from user's cart after successful order
+        cartItemRepository.deleteAll(cartItemRepository.findByUserIdentifier(orderRequest.getPhone_number()));
+
+        // Check stock for all items before placing order
+        for (var item : orderRequest.getOrderItems()) {
+            Product product;
+            try {
+                product = productService.getProductEntityById(item.getProduct_id());
+            } catch (Exception e) {
+                throw new RuntimeException("Product not found for id: " + item.getProduct_id());
+            }
+            Product_stock stock = product.getStocks().stream()
+                    .filter(s -> s.getSize().equals(item.getSize()))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException(
+                            "Stock not found for product " + product.getProduct_id() + " size " + item.getSize()));
+
+            if (stock.getQuantity() < item.getQuantity()) {
+                throw new RuntimeException(
+                        "Not enough stock for product " + product.getName() + " (size " + item.getSize()
+                                + "). Available: " + stock.getQuantity());
+            }
         }
     }
 
@@ -173,7 +242,8 @@ public class OrderService {
             Product_stock stock = product.getStocks().stream()
                     .filter(s -> s.getSize().equals(size))
                     .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Stock not found for product " + product.getProduct_id() + " size " + size));
+                    .orElseThrow(() -> new RuntimeException(
+                            "Stock not found for product " + product.getProduct_id() + " size " + size));
             stock.setQuantity(stock.getQuantity() + qty);
             productStockRepository.save(stock);
         }
