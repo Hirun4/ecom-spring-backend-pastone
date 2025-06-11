@@ -83,11 +83,22 @@ public class OrderService {
             List<CustomerOrderRequestItem> items = orderRequest.getOrderItems().stream().map(item -> {
                 try {
                     Product product = productService.getProductEntityById(item.getProduct_id());
+                    String buyingPriceCode = product.getBuying_price_code();
+                    Product_codes productCode = productCodesRepository.findByCode(buyingPriceCode);
                     return CustomerOrderRequestItem.builder()
                             .customerOrderRequest(corFinal)
                             .product(product)
                             .size(item.getSize())
                             .quantity(item.getQuantity())
+                            .origin_country(item.getOrigin_country())
+                            .buying_price_code(buyingPriceCode)
+                            .buying_price(productCode != null ? productCode.getBuyingPrice() : null)
+                            .selling_price(item.getSelling_price())
+                            .promo_price(item.getPromo_price())
+                            .final_price(item.getFinal_price())
+                            .phone_number(item.getPhone_number())
+                            .discount(item.getDiscount())
+
                             .build();
                 } catch (Exception e) {
                     throw new RuntimeException("Product not found for id: " + item.getProduct_id());
