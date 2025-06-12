@@ -198,25 +198,25 @@ public class OrderService {
         cartItemRepository.deleteAll(cartItemRepository.findByUserIdentifier(orderRequest.getPhone_number()));
 
         // Check stock for all items before placing order
-        for (var item : orderRequest.getOrderItems()) {
-            Product product;
-            try {
-                product = productService.getProductEntityById(item.getProduct_id());
-            } catch (Exception e) {
-                throw new RuntimeException("Product not found for id: " + item.getProduct_id());
-            }
-            Product_stock stock = product.getStocks().stream()
-                    .filter(s -> s.getSize().equals(item.getSize()))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException(
-                            "Stock not found for product " + product.getProduct_id() + " size " + item.getSize()));
-
-            if (stock.getQuantity() < item.getQuantity()) {
-                throw new RuntimeException(
-                        "Not enough stock for product " + product.getName() + " (size " + item.getSize()
-                                + "). Available: " + stock.getQuantity());
-            }
-        }
+//        for (var item : orderRequest.getOrderItems()) {
+//            Product product;
+//            try {
+//                product = productService.getProductEntityById(item.getProduct_id());
+//            } catch (Exception e) {
+//                throw new RuntimeException("Product not found for id: " + item.getProduct_id());
+//            }
+//            Product_stock stock = product.getStocks().stream()
+//                    .filter(s -> s.getSize().equals(item.getSize()))
+//                    .findFirst()
+//                    .orElseThrow(() -> new RuntimeException(
+//                            "Stock not found for product " + product.getProduct_id() + " size " + item.getSize()));
+//
+//            if (stock.getQuantity() < item.getQuantity()) {
+//                throw new RuntimeException(
+//                        "Not enough stock for product " + product.getName() + " (size " + item.getSize()
+//                                + "). Available: " + stock.getQuantity());
+//            }
+//        }
     }
 
     public void approveBankTransferOrder(Integer requestId) {
