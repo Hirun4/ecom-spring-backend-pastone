@@ -34,6 +34,9 @@ public class Product {
     private String image_url;
 
     @Column
+    private String other_images;
+
+    @Column
     private String category;
 
     @Column

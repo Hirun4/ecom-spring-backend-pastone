@@ -21,6 +21,7 @@ public class ProductDto {
     private String description;
     private BigDecimal price;
     private String image_url;
+    private String other_images;
     private String category;
     private String origin_country;
     private int stock_quantity;
