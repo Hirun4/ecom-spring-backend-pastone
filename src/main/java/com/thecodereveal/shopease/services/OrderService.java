@@ -11,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -66,6 +67,7 @@ public class OrderService {
     }
 
     public void placeOrder(OrderRequest orderRequest, String paymentMethod, String paymentSlipUrl) {
+        BigDecimal fixedDeliveryFee = BigDecimal.valueOf(400.00);
         if ("BANK_TRANSFER".equalsIgnoreCase(paymentMethod)) {
             CustomerOrderRequest cor = CustomerOrderRequest.builder()
                     .customerName(orderRequest.getCustomer_name())
@@ -73,7 +75,7 @@ public class OrderService {
                     .phoneNumber(orderRequest.getPhone_number())
                     .deliveryMethod("Courier")
                     .district(orderRequest.getDistrict())
-                    .deliveryFee(orderRequest.getDelivery_fee())
+                    .deliveryFee(fixedDeliveryFee)
                     .paymentSlipUrl(paymentSlipUrl)
                     .createdAt(new Date())
                     .status("PENDING")
@@ -132,7 +134,7 @@ public class OrderService {
                     .phone_number(orderRequest.getPhone_number())
                     .district(orderRequest.getDistrict())
                     .delivery_method(DeliveryMethod.Courier)
-                    .delivery_fee(orderRequest.getDelivery_fee())
+                    .delivery_fee(fixedDeliveryFee)
                     .created_at(new Date())
                     .status(OrderStatus.PENDING)
                     .build();
