@@ -29,5 +29,7 @@ public class CustomerOrderRequest {
     @OneToMany(mappedBy = "customerOrderRequest", cascade = CascadeType.ALL)
     private List<CustomerOrderRequestItem> items;
 
-    private String status; // e.g., PENDING, APPROVED, REJECTED
+    private String status;
+
+    private String paymentMethod;// e.g., PENDING, APPROVED, REJECTED
 }

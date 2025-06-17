@@ -26,4 +26,5 @@ public class OrderRequest {
     private java.util.Date created_at;
     private java.util.Date updated_at;
     private List<OrderItemRequest> orderItems;
+    private String payment_method;
 }

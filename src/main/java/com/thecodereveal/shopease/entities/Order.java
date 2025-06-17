@@ -63,4 +63,7 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderItem> orderItems;
 
+    @Column(name ="payment_method",length = 20)
+    private String payment_method; // e.g., CASH_ON_DELIVERY, ONLINE_PAYMENT
+
 }
