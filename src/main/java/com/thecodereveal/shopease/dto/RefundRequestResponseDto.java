@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Data
 public class RefundRequestResponseDto {
-    private UUID id;
+    private int id;
     private Long orderId;
     private String reason;
     private String bankAccountNumber;

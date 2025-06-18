@@ -15,7 +15,7 @@ import java.util.UUID;
 public class RefundRequest {
     @Id
     @GeneratedValue
-    private UUID id;
+    private int id;
 
     private Long orderId;
 
