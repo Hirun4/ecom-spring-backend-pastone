@@ -36,7 +36,7 @@ public class WebSecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorize)-> authorize
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
-                .requestMatchers(HttpMethod.GET,"/api/products/**","/api/order1/**","/api/category/**","/api/cart/**").permitAll()
+                .requestMatchers(HttpMethod.GET,"/api/products/**","/api/order1/**","/api/category/**","/api/cart/**","/api/refund-requests/**").permitAll()
                         .requestMatchers("/oauth2/success").permitAll()
                         .requestMatchers(HttpMethod.POST,"/api/cart/**","/api/order1/**","/api/refund-requests").permitAll()
                         .requestMatchers(HttpMethod.DELETE,"/api/cart/**").permitAll()

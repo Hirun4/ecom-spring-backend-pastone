@@ -43,4 +43,22 @@ public class RefundRequestService {
         response.setImageUrls(saved.getImageUrls());
         return response;
     }
+
+    // src/main/java/com/thecodereveal/shopease/services/RefundRequestService.java
+    public RefundRequestResponseDto getRefundRequestByOrderId(Long orderId) {
+        RefundRequest refundRequest = refundRequestRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new RuntimeException("Refund request not found for orderId: " + orderId));
+        RefundRequestResponseDto response = new RefundRequestResponseDto();
+        response.setId(refundRequest.getId());
+        response.setOrderId(refundRequest.getOrderId());
+        response.setReason(refundRequest.getReason());
+        response.setBankAccountNumber(refundRequest.getBankAccountNumber());
+        response.setBankBranch(refundRequest.getBankBranch());
+        response.setBankName(refundRequest.getBankName());
+        response.setRefundAmount(refundRequest.getRefundAmount());
+        response.setStatus(refundRequest.getStatus());
+        response.setCreatedAt(refundRequest.getCreatedAt());
+        response.setImageUrls(refundRequest.getImageUrls());
+        return response;
+    }
 }

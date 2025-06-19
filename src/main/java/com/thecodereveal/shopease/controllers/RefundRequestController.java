@@ -21,4 +21,11 @@ public class RefundRequestController {
         RefundRequestResponseDto response = refundRequestService.createRefundRequest(refundRequestDto);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
+
+    // src/main/java/com/thecodereveal/shopease/controllers/RefundRequestController.java
+    @GetMapping("/order/{orderId}")
+    public ResponseEntity<RefundRequestResponseDto> getRefundRequestByOrderId(@PathVariable Long orderId) {
+        RefundRequestResponseDto response = refundRequestService.getRefundRequestByOrderId(orderId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
 }
