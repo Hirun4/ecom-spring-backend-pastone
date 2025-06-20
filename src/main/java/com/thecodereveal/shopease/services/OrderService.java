@@ -68,125 +68,67 @@ public class OrderService {
 
     public void placeOrder(OrderRequest orderRequest, String paymentMethod, String paymentSlipUrl) {
         BigDecimal fixedDeliveryFee = BigDecimal.valueOf(400.00);
-        if ("BANK_TRANSFER".equalsIgnoreCase(paymentMethod)) {
-            CustomerOrderRequest cor = CustomerOrderRequest.builder()
-                    .customerName(orderRequest.getCustomer_name())
-                    .address(orderRequest.getAddress())
-                    .phoneNumber(orderRequest.getPhone_number())
-                    .deliveryMethod("Courier")
-                    .district(orderRequest.getDistrict())
-                    .deliveryFee(fixedDeliveryFee)
-                    .paymentSlipUrl(paymentSlipUrl)
-                    .createdAt(new Date())
-                    .status("PENDING")
-                    .build();
-            cor = customerOrderRequestRepository.save(cor);
 
-            final CustomerOrderRequest corFinal = cor;
-            List<CustomerOrderRequestItem> items = orderRequest.getOrderItems().stream().map(item -> {
-                try {
-                    Product product = productService.getProductEntityById(item.getProduct_id());
-                    String buyingPriceCode = product.getBuying_price_code();
-                    Product_codes productCode = productCodesRepository.findByCode(buyingPriceCode);
-                    return CustomerOrderRequestItem.builder()
-                            .customerOrderRequest(corFinal)
-                            .product(product)
-                            .size(item.getSize())
-                            .quantity(item.getQuantity())
-                            .origin_country(item.getOrigin_country())
-                            .buying_price_code(buyingPriceCode)
-                            .buying_price(productCode != null ? productCode.getBuyingPrice() : null)
-                            .selling_price(item.getSelling_price())
-                            .promo_price(item.getPromo_price())
-                            .final_price(item.getFinal_price())
-                            .phone_number(item.getPhone_number())
-                            .discount(item.getDiscount())
+        CustomerOrderRequest cor = CustomerOrderRequest.builder()
+                .customerName(orderRequest.getCustomer_name())
+                .address(orderRequest.getAddress())
+                .phoneNumber(orderRequest.getPhone_number())
+                .deliveryMethod("Courier")
+                .district(orderRequest.getDistrict())
+                .deliveryFee(fixedDeliveryFee)
+                .paymentSlipUrl(paymentSlipUrl)
+                .createdAt(new Date())
+                .status("PENDING")
+                .paymentMethod(paymentMethod) // <-- set payment method here
+                .build();
+        cor = customerOrderRequestRepository.save(cor);
 
-                            .build();
-                } catch (Exception e) {
-                    throw new RuntimeException("Product not found for id: " + item.getProduct_id());
-                }
-            }).collect(Collectors.toList());
-
-            cor.setItems(items);
-            customerOrderRequestRepository.save(cor);
-
-            // Reduce stock for each item
-            for (CustomerOrderRequestItem item : items) {
-                Product product = item.getProduct();
-                Product_stock stock = product.getStocks().stream()
-                        .filter(s -> s.getSize().equals(item.getSize()))
-                        .findFirst()
-                        .orElseThrow(() -> new RuntimeException(
-                                "Stock not found for product " + product.getProduct_id() + " size " + item.getSize()));
-
-                if (stock.getQuantity() < item.getQuantity()) {
-                    throw new RuntimeException(
-                            "Not enough stock for product " + product.getProduct_id() + " size " + item.getSize());
-                }
-                stock.setQuantity(stock.getQuantity() - item.getQuantity());
-                productStockRepository.save(stock);
+        final CustomerOrderRequest corFinal = cor;
+        List<CustomerOrderRequestItem> items = orderRequest.getOrderItems().stream().map(item -> {
+            try {
+                Product product = productService.getProductEntityById(item.getProduct_id());
+                String buyingPriceCode = product.getBuying_price_code();
+                Product_codes productCode = productCodesRepository.findByCode(buyingPriceCode);
+                return CustomerOrderRequestItem.builder()
+                        .customerOrderRequest(corFinal)
+                        .product(product)
+                        .size(item.getSize())
+                        .quantity(item.getQuantity())
+                        .origin_country(item.getOrigin_country())
+                        .buying_price_code(buyingPriceCode)
+                        .buying_price(productCode != null ? productCode.getBuyingPrice() : null)
+                        .selling_price(item.getSelling_price())
+                        .promo_price(item.getPromo_price())
+                        .final_price(item.getFinal_price())
+                        .phone_number(item.getPhone_number())
+                        .discount(item.getDiscount())
+                        .build();
+            } catch (Exception e) {
+                throw new RuntimeException("Product not found for id: " + item.getProduct_id());
             }
-        } else if ("CASH_ON_DELIVERY".equalsIgnoreCase(paymentMethod)) {
-            Order order = Order.builder()
-                    .customer_name(orderRequest.getCustomer_name())
-                    .address(orderRequest.getAddress())
-                    .phone_number(orderRequest.getPhone_number())
-                    .district(orderRequest.getDistrict())
-                    .delivery_method(DeliveryMethod.Courier)
-                    .delivery_fee(fixedDeliveryFee)
-                    .created_at(new Date())
-                    .status(OrderStatus.PENDING)
-                    .build();
-            order = orderRepository.save(order);
+        }).collect(Collectors.toList());
 
-            final Order orderFinal = order;
-            List<OrderItem> orderItems = orderRequest.getOrderItems().stream().map(item -> {
-                try {
-                    Product product = productService.getProductEntityById(item.getProduct_id());
-                    String buyingPriceCode = product.getBuying_price_code();
-                    Product_codes productCode = productCodesRepository.findByCode(buyingPriceCode);
-                    return OrderItem.builder()
-                            .order(orderFinal)
-                            .product(product)
-                            .size(item.getSize())
-                            .quantity(item.getQuantity())
-                            .buying_price_code(buyingPriceCode)
-                            .buying_price(productCode != null ? productCode.getBuyingPrice() : null)
-                            .selling_price(item.getSelling_price())
-                            .promo_price(item.getPromo_price())
-                            .final_price(item.getFinal_price())
-                            .phone_number(item.getPhone_number())
-                            .discount(item.getDiscount())
-                            .origin_country(item.getOrigin_country())
-                            .build();
-                } catch (Exception e) {
-                    throw new RuntimeException("Product not found for id: " + item.getProduct_id());
-                }
-            }).collect(Collectors.toList());
+        cor.setItems(items);
+        customerOrderRequestRepository.save(cor);
 
-            order.setOrderItems(orderItems);
-            orderRepository.save(order);
+        // Reduce stock for each item (same as before)
+        for (CustomerOrderRequestItem item : items) {
+            Product product = item.getProduct();
+            Product_stock stock = product.getStocks().stream()
+                    .filter(s -> s.getSize().equals(item.getSize()))
+                    .findFirst()
+                    .orElseThrow(() -> new RuntimeException(
+                            "Stock not found for product " + product.getProduct_id() + " size " + item.getSize()));
 
-            // Reduce stock for each item
-            for (OrderItem item : orderItems) {
-                Product product = item.getProduct();
-                Product_stock stock = product.getStocks().stream()
-                        .filter(s -> s.getSize().equals(item.getSize()))
-                        .findFirst()
-                        .orElseThrow(() -> new RuntimeException(
-                                "Stock not found for product " + product.getProduct_id() + " size " + item.getSize()));
-
-                if (stock.getQuantity() < item.getQuantity()) {
-                    throw new RuntimeException(
-                            "Not enough stock for product " + product.getProduct_id() + " size " + item.getSize());
-                }
-                stock.setQuantity(stock.getQuantity() - item.getQuantity());
-                productStockRepository.save(stock);
+            if (stock.getQuantity() < item.getQuantity()) {
+                throw new RuntimeException(
+                        "Not enough stock for product " + product.getProduct_id() + " size " + item.getSize());
             }
+            stock.setQuantity(stock.getQuantity() - item.getQuantity());
+            productStockRepository.save(stock);
         }
 
-        // Remove ordered items from cart
+        // Remove ordered items from cart (same as before)
         List<CartItem> cartItems = cartItemRepository.findByUserIdentifier(orderRequest.getPhone_number());
         for (var orderedItem : orderRequest.getOrderItems()) {
             cartItems.stream()
@@ -195,30 +137,6 @@ public class OrderService {
                     .findFirst()
                     .ifPresent(cartItem -> cartItemRepository.deleteById(cartItem.getId()));
         }
-
-        // Remove all items from user's cart after successful order
-        cartItemRepository.deleteAll(cartItemRepository.findByUserIdentifier(orderRequest.getPhone_number()));
-
-        // Check stock for all items before placing order
-//        for (var item : orderRequest.getOrderItems()) {
-//            Product product;
-//            try {
-//                product = productService.getProductEntityById(item.getProduct_id());
-//            } catch (Exception e) {
-//                throw new RuntimeException("Product not found for id: " + item.getProduct_id());
-//            }
-//            Product_stock stock = product.getStocks().stream()
-//                    .filter(s -> s.getSize().equals(item.getSize()))
-//                    .findFirst()
-//                    .orElseThrow(() -> new RuntimeException(
-//                            "Stock not found for product " + product.getProduct_id() + " size " + item.getSize()));
-//
-//            if (stock.getQuantity() < item.getQuantity()) {
-//                throw new RuntimeException(
-//                        "Not enough stock for product " + product.getName() + " (size " + item.getSize()
-//                                + "). Available: " + stock.getQuantity());
-//            }
-//        }
     }
 
     public void approveBankTransferOrder(Integer requestId) {
