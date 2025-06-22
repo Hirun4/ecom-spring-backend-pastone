@@ -19,6 +19,7 @@ public class UserDetailsDto {
     private String firstName;
     private String lastName;
     private String phoneNumber;
+    private String phoneNumber2;
     private String email;
     private Object authorityList;
     private List<Address> addressList;

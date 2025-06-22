@@ -37,6 +37,7 @@ public class UserDetailController {
                 .email(user.getEmail())
                 .id(user.getId())
                 .phoneNumber(user.getPhoneNumber())
+                .phoneNumber2(user.getPhoneNumber2())
                 .addressList(user.getAddressList())
                 .authorityList(user.getAuthorities().toArray()).build();
 
@@ -59,6 +60,7 @@ public class UserDetailController {
         user.setLastName(userDetailsDto.getLastName());
         // user.setEmail(userDetailsDto.getEmail());
         user.setPhoneNumber(userDetailsDto.getPhoneNumber());
+        user.setPhoneNumber2(userDetailsDto.getPhoneNumber2());
         user.setAddressList(userDetailsDto.getAddressList());
 
         // Save updated user
@@ -70,6 +72,7 @@ public class UserDetailController {
                 // .email(updatedUser.getEmail())
                 .id(updatedUser.getId())
                 .phoneNumber(updatedUser.getPhoneNumber())
+                .phoneNumber2(updatedUser.getPhoneNumber2())
                 .addressList(updatedUser.getAddressList())
                 .authorityList(updatedUser.getAuthorities().toArray()).build();
 

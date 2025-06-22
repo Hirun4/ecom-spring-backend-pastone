@@ -40,6 +40,8 @@ public class User implements UserDetails {
 
     private String phoneNumber;
 
+    private String phoneNumber2;
+
     private String provider;
 
     private String verificationCode;
