@@ -85,4 +85,13 @@ public class CartController {
         cartService.removeCartItem(userIdentifier, cartItemId);
         return ResponseEntity.ok().build();
     }
+
+    @PutMapping("/{userIdentifier}/items/{cartItemId}")
+    public ResponseEntity<Void> updateCartItemQuantity(
+            @PathVariable String userIdentifier,
+            @PathVariable Integer cartItemId,
+            @RequestBody CartItemRequest request) {
+        cartService.updateCartItemQuantity(userIdentifier, cartItemId, request.getQuantity());
+        return ResponseEntity.ok().build();
+    }
 }

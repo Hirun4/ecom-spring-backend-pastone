@@ -60,4 +60,16 @@ public class CartService {
 
         cartItemRepository.deleteById(cartItemId);
     }
+
+    public void updateCartItemQuantity(String userIdentifier, Integer cartItemId, int quantity) {
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("Cart item not found"));
+        if (!cartItem.getUserIdentifier().equals(userIdentifier)) {
+            throw new RuntimeException("Unauthorized access to cart item");
+        }
+        cartItem.setQuantity(quantity);
+        cartItemRepository.save(cartItem);
+    }
+
+
 }
